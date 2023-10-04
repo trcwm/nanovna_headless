@@ -1,10 +1,10 @@
-/* 
+/*
  * fft.h is Based on
  * Free FFT and convolution (C)
- * 
+ *
  * Copyright (c) 2019 Project Nayuki. (MIT License)
  * https://www.nayuki.io/page/free-small-fft-in-multiple-languages
- * 
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
@@ -26,65 +26,74 @@
 #include <math.h>
 #include <stdint.h>
 
-static uint16_t reverse_bits(uint16_t x, int n) {
-	uint16_t result = 0;
-	int i;
-	for (i = 0; i < n; i++, x >>= 1)
-		result = (result << 1) | (x & 1U);
-	return result;
+static uint16_t reverse_bits(uint16_t x, int n)
+{
+    uint16_t result = 0;
+    int i;
+    for (i = 0; i < n; i++, x >>= 1)
+        result = (result << 1) | (x & 1U);
+    return result;
 }
 
 /***
  * dir = forward: 0, inverse: 1
  * https://www.nayuki.io/res/free-small-fft-in-multiple-languages/fft.c
  */
-static void fft256(float array[][2], const uint8_t dir) {
-	const uint16_t n = 256;
-	const uint8_t levels = 8; // log2(n)
+static void fft256(float array[][2], const uint8_t dir)
+{
+    const uint16_t n = 256;
+    const uint8_t levels = 8; // log2(n)
 
-	const uint8_t real =   dir & 1;
-	const uint8_t imag = ~real & 1;
-	uint16_t i;
-	uint16_t size;
+    const uint8_t real =   dir & 1;
+    const uint8_t imag = ~real & 1;
+    uint16_t i;
+    uint16_t size;
 
-	for (i = 0; i < n; i++) {
-		uint16_t j = reverse_bits(i, levels);
-		if (j > i) {
-			float temp = array[i][real];
-			array[i][real] = array[j][real];
-			array[j][real] = temp;
-			temp = array[i][imag];
-			array[i][imag] = array[j][imag];
-			array[j][imag] = temp;
-		}
-	}
+    for (i = 0; i < n; i++)
+    {
+        uint16_t j = reverse_bits(i, levels);
+        if (j > i)
+        {
+            float temp = array[i][real];
+            array[i][real] = array[j][real];
+            array[j][real] = temp;
+            temp = array[i][imag];
+            array[i][imag] = array[j][imag];
+            array[j][imag] = temp;
+        }
+    }
 
-	// Cooley-Tukey decimation-in-time radix-2 FFT
-	for (size = 2; size <= n; size *= 2) {
-		uint16_t halfsize = size / 2;
-		uint16_t tablestep = n / size;
-		uint16_t i;
-		for (i = 0; i < n; i += size) {
-			uint16_t j, k;
-			for (j = i, k = 0; j < i + halfsize; j++, k += tablestep) {
-				uint16_t l = j + halfsize;
-				float tpre =  array[l][real] * cos(2 * VNA_PI * k / 256) + array[l][imag] * sin(2 * VNA_PI * k / 256);
-				float tpim = -array[l][real] * sin(2 * VNA_PI * k / 256) + array[l][imag] * cos(2 * VNA_PI * k / 256);
-				array[l][real] = array[j][real] - tpre;
-				array[l][imag] = array[j][imag] - tpim;
-				array[j][real] += tpre;
-				array[j][imag] += tpim;
-			}
-		}
-		if (size == n)  // Prevent overflow in 'size *= 2'
-			break;
-	}
+    // Cooley-Tukey decimation-in-time radix-2 FFT
+    for (size = 2; size <= n; size *= 2)
+    {
+        uint16_t halfsize = size / 2;
+        uint16_t tablestep = n / size;
+        uint16_t i;
+        for (i = 0; i < n; i += size)
+        {
+            uint16_t j, k;
+            for (j = i, k = 0; j < i + halfsize; j++, k += tablestep)
+            {
+                uint16_t l = j + halfsize;
+                float tpre =  array[l][real] * cos(2 * VNA_PI * k / 256) + array[l][imag] * sin(2 * VNA_PI * k / 256);
+                float tpim = -array[l][real] * sin(2 * VNA_PI * k / 256) + array[l][imag] * cos(2 * VNA_PI * k / 256);
+                array[l][real] = array[j][real] - tpre;
+                array[l][imag] = array[j][imag] - tpim;
+                array[j][real] += tpre;
+                array[j][imag] += tpim;
+            }
+        }
+        if (size == n)  // Prevent overflow in 'size *= 2'
+            break;
+    }
 }
 
-static inline void fft256_forward(float array[][2]) {
-	fft256(array, 0);
+static inline void fft256_forward(float array[][2])
+{
+    fft256(array, 0);
 }
 
-static inline void fft256_inverse(float array[][2]) {
-	fft256(array, 1);
+static inline void fft256_inverse(float array[][2])
+{
+    fft256(array, 1);
 }

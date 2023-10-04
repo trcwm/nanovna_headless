@@ -83,8 +83,9 @@ void cal_collect(int type);
 void cal_done(void);
 
 #define MAX_FREQ_TYPE 5
-enum stimulus_type {
-  ST_START=0, ST_STOP, ST_CENTER, ST_SPAN, ST_CW
+enum stimulus_type
+{
+    ST_START=0, ST_STOP, ST_CENTER, ST_SPAN, ST_CW
 };
 
 void set_sweep_frequency(int type, uint32_t frequency);
@@ -188,13 +189,14 @@ extern const uint16_t numfont16x22[];
 #define S_PI    "\034"
 #define S_MICRO "\035"
 #define S_OHM   "\036"
-// trace 
+// trace
 
 #define TRACES_MAX 4
 
 #define MAX_TRACE_TYPE 12
-enum trace_type {
-  TRC_LOGMAG=0, TRC_PHASE, TRC_DELAY, TRC_SMITH, TRC_POLAR, TRC_LINEAR, TRC_SWR, TRC_REAL, TRC_IMAG, TRC_R, TRC_X, TRC_Q, TRC_OFF
+enum trace_type
+{
+    TRC_LOGMAG=0, TRC_PHASE, TRC_DELAY, TRC_SMITH, TRC_POLAR, TRC_LINEAR, TRC_SWR, TRC_REAL, TRC_IMAG, TRC_R, TRC_X, TRC_Q, TRC_OFF
 };
 // Mask for define rectangular plot
 #define RECTANGULAR_GRID_MASK ((1<<TRC_LOGMAG)|(1<<TRC_PHASE)|(1<<TRC_DELAY)|(1<<TRC_LINEAR)|(1<<TRC_SWR)|(1<<TRC_REAL)|(1<<TRC_IMAG)|(1<<TRC_R)|(1<<TRC_X)|(1<<TRC_Q))
@@ -209,31 +211,33 @@ enum trace_type {
 // Electrical Delay
 // Phase
 
-typedef struct trace {
-  uint8_t enabled;
-  uint8_t type;
-  uint8_t channel;
-  uint8_t reserved;
-  float scale;
-  float refpos;
+typedef struct trace
+{
+    uint8_t enabled;
+    uint8_t type;
+    uint8_t channel;
+    uint8_t reserved;
+    float scale;
+    float refpos;
 } trace_t;
 
 #define FREQ_MODE_START_STOP    0x0
 #define FREQ_MODE_CENTER_SPAN   0x1
 #define FREQ_MODE_DOTTED_GRID   0x2
 
-typedef struct config {
-  int32_t magic;
-  uint16_t dac_value;
-  uint16_t grid_color;
-  uint16_t menu_normal_color;
-  uint16_t menu_active_color;
-  uint16_t trace_color[TRACES_MAX];
-  int16_t  touch_cal[4];
-  uint32_t harmonic_freq_threshold;
-  uint16_t vbat_offset;
-  uint8_t _reserved[22];
-  uint32_t checksum;
+typedef struct config
+{
+    int32_t magic;
+    uint16_t dac_value;
+    uint16_t grid_color;
+    uint16_t menu_normal_color;
+    uint16_t menu_active_color;
+    uint16_t trace_color[TRACES_MAX];
+    int16_t  touch_cal[4];
+    uint32_t harmonic_freq_threshold;
+    uint16_t vbat_offset;
+    uint8_t _reserved[22];
+    uint32_t checksum;
 } config_t;
 
 extern config_t config;
@@ -254,10 +258,11 @@ float groupdelay_from_array(int i, float array[POINTS_COUNT][2]);
 
 #define MARKERS_MAX 4
 
-typedef struct marker {
-  int8_t enabled;
-  int16_t index;
-  uint32_t frequency;
+typedef struct marker
+{
+    int8_t enabled;
+    int16_t index;
+    uint32_t frequency;
 } marker_t;
 
 extern int8_t previous_marker;
@@ -360,28 +365,29 @@ void show_logo(void);
 #define SAVE_PROP_CONFIG_3_ADDR 0x0801d000
 #define SAVE_PROP_CONFIG_4_ADDR 0x0801e800
 
-typedef struct properties {
-  uint32_t magic;
-  uint32_t _frequency0;
-  uint32_t _frequency1;
-  uint16_t _sweep_points;
-  uint16_t _cal_status;
+typedef struct properties
+{
+    uint32_t magic;
+    uint32_t _frequency0;
+    uint32_t _frequency1;
+    uint16_t _sweep_points;
+    uint16_t _cal_status;
 
-  uint32_t _frequencies[POINTS_COUNT];
-  float _cal_data[5][POINTS_COUNT][2];
-  float _electrical_delay; // picoseconds
-  
-  trace_t _trace[TRACES_MAX];
-  marker_t _markers[MARKERS_MAX];
+    uint32_t _frequencies[POINTS_COUNT];
+    float _cal_data[5][POINTS_COUNT][2];
+    float _electrical_delay; // picoseconds
 
-  float _velocity_factor; // %
-  int8_t _active_marker;
-  uint8_t _domain_mode; /* 0bxxxxxffm : where ff: TD_FUNC m: DOMAIN_MODE */
-  uint8_t _marker_smith_format;
-  uint8_t _bandwidth;
-  int8_t _freq_mode;
-  uint8_t _reserved[49];
-  uint32_t checksum;
+    trace_t _trace[TRACES_MAX];
+    marker_t _markers[MARKERS_MAX];
+
+    float _velocity_factor; // %
+    int8_t _active_marker;
+    uint8_t _domain_mode; /* 0bxxxxxffm : where ff: TD_FUNC m: DOMAIN_MODE */
+    uint8_t _marker_smith_format;
+    uint8_t _bandwidth;
+    int8_t _freq_mode;
+    uint8_t _reserved[49];
+    uint32_t checksum;
 } properties_t;
 
 //sizeof(properties_t) == 0x1200
@@ -436,24 +442,27 @@ extern void ui_process(void);
 extern volatile uint8_t operation_requested;
 
 // lever_mode
-enum lever_mode {
-  LM_MARKER, LM_SEARCH, LM_CENTER, LM_SPAN, LM_EDELAY
+enum lever_mode
+{
+    LM_MARKER, LM_SEARCH, LM_CENTER, LM_SPAN, LM_EDELAY
 };
 
 // marker smith value format
-enum marker_smithvalue {
-  MS_LIN, MS_LOG, MS_REIM, MS_RX, MS_RLC
+enum marker_smithvalue
+{
+    MS_LIN, MS_LOG, MS_REIM, MS_RX, MS_RLC
 };
 
-typedef struct uistat {
-  int8_t digit; /* 0~5 */
-  int8_t digit_mode;
-  int8_t current_trace; /* 0..3 */
-  uint32_t value; // for editing at numeric input area
+typedef struct uistat
+{
+    int8_t digit; /* 0~5 */
+    int8_t digit_mode;
+    int8_t current_trace; /* 0..3 */
+    uint32_t value; // for editing at numeric input area
 //  uint32_t previous_value;
-  uint8_t lever_mode;
-  uint8_t marker_delta;
-  uint8_t marker_tracking;
+    uint8_t lever_mode;
+    uint8_t marker_delta;
+    uint8_t marker_tracking;
 } uistat_t;
 
 extern uistat_t uistat;

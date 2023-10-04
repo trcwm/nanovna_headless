@@ -1,35 +1,13 @@
-NanoVNA - Very tiny handheld Vector Network Analyzer
-==========================================================
-
-[![GitHub release](http://img.shields.io/github/release/ttrftech/NanoVNA.svg?style=flat)][release]
-[![CircleCI](https://circleci.com/gh/ttrftech/NanoVNA.svg?style=shield)](https://circleci.com/gh/ttrftech/NanoVNA)
-
-[release]: https://github.com/ttrftech/NanoVNA/releases
-
-<div align="center">
-<img src="/doc/nanovna.jpg" width="480px">
-</div>
+# NanoVNA Headless - Firmware for a NanoVNA without a display
 
 # About
 
-NanoVNA is very tiny handheld Vector Network Analyzer (VNA). It is
-standalone with lcd display, portable device with battery. This
-project aim to provide an RF gadget but useful instrument for
-enthusiast.
+This firmware streamlines the USB serial I/O and removes all user interface functions.
+A Raspberry Pi can then be used to build a VNA with a bigger display.
 
-This repository contains source of NanoVNA firmware.
+This firmware is based on eddy555's original NanoVNA firmware.
 
 ## Prepare ARM Cross Tools
-
-**UPDATE**: Recent gcc version works to build NanoVNA, no need old version.
-
-### MacOSX
-
-Install cross tools and firmware updating tool.
-
-    $ brew tap px4/px4
-    $ brew install gcc-arm-none-eabi-80
-    $ brew install dfu-util
 
 ### Linux (ubuntu)
 
@@ -44,8 +22,8 @@ Download arm cross tools from [here](https://developer.arm.com/tools-and-softwar
 
 Fetch source and submodule.
 
-    $ git clone https://github.com/ttrftech/NanoVNA.git
-    $ cd NanoVNA
+    $ git clone https://github.com/trcwm/nanovna_headless.git
+    $ cd nanovna_headless
     $ git submodule update --init --recursive
 
 ## Build
@@ -53,13 +31,6 @@ Fetch source and submodule.
 Just make in the directory.
 
     $ make
-
-### Build firmware using docker
-
-Using [this docker image](https://hub.docker.com/r/edy555/arm-embedded) and without installing arm toolchain, you can build the firmware.
-
-    $ cd NanoVNA
-    $ docker run -it --rm -v $(PWD):/work edy555/arm-embedded:8.2 make
 
 ## Flash firmware
 
@@ -76,39 +47,15 @@ Or simply use make.
 
     $ make flash
 
-## Companion Tools
-
-There are seveal numbers of great companion PC tools from third-party.
-
-* [NanoVNASharp Windows software](https://drive.google.com/drive/folders/1IZEtx2YdqchaTO8Aa9QbhQ8g_Pr5iNhr) by hugen79
-* [NanoVNA WebSerial/WebUSB](https://github.com/cho45/NanoVNA-WebUSB-Client) by cho45
-* [Android NanoVNA app](https://play.google.com/store/apps/details?id=net.lowreal.nanovnawebapp) by cho45
-* [NanoVNASaver](https://github.com/mihtjel/nanovna-saver) by mihtjel
-* [TAPR VNAR4](https://groups.io/g/nanovna-users/files/NanoVNA%20PC%20Software/TAPR%20VNA) supports NanoVNA by erikkaashoek
-* see [python](/python/README.md) directory to use NanoVNA with Python and Jupyter Notebook.
-
-## Documentation
-
-* [NanoVNA User Guide(ja)](https://cho45.github.io/NanoVNA-manual/) by cho45. [(en:google translate)](https://translate.google.com/translate?sl=ja&tl=en&u=https%3A%2F%2Fcho45.github.io%2FNanoVNA-manual%2F)
-
 ## Reference
 
 * [Schematics](/doc/nanovna-sch.pdf)
 * [PCB Photo](/doc/nanovna-pcb-photo.jpg)
 * [Block Diagram](/doc/nanovna-blockdiagram.png)
-* Kit available from https://ttrf.tk/kit/nanovna
 
-## Note
+## Credits
 
-Hardware design material is disclosed to prevent bad quality clone. Please let me know if you would have your own unit.
-
-## Authorized Distributor
-
-* [Nooelec](https://www.nooelec.com/store/nanovna-bundle.html)
-* Switch Science(ja) [NanoVNA-H](https://www.switch-science.com/catalog/6405/) [NanoVNA-H4](https://www.switch-science.com/catalog/6406/)
-
-## Credit
-
+* [@trcwm](https://github.com/trcwm)
 * [@edy555](https://github.com/edy555)
 
 ### Contributors
