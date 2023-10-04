@@ -5,5 +5,11 @@
         "-build/include_order",
         "-readability/casting",
         "-whitespace/comments"
-    ]
+    ],
+    "files.associations": {
+        "ch.h": "c",
+        "hal.h": "c",
+        "hal_streams.h": "c",
+        "nanovna.h": "c"
+    }
 }

@@ -5,7 +5,7 @@
 This firmware streamlines the USB serial I/O and removes all user interface functions.
 A Raspberry Pi can then be used to build a VNA with a bigger display.
 
-This firmware is based on eddy555's original NanoVNA firmware.
+This firmware is based on edy555's original NanoVNA firmware.
 
 ## Prepare ARM Cross Tools
 
