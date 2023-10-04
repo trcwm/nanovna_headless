@@ -398,6 +398,12 @@ si5351_get_band(uint32_t freq)
     return 3;
 }
 
+static struct config_t
+{
+    /* data */
+    int harmonic_freq_threshold;
+} config;
+
 /*
  * Maximum supported frequency = FREQ_HARMONICS * 9U
  * configure output as follows:
@@ -421,6 +427,9 @@ si5351_set_frequency(uint32_t freq, uint8_t drive_strength)
     uint32_t fdiv;
     // Fix possible incorrect input
     drive_strength&=SI5351_CLK_DRIVE_STRENGTH_MASK;
+
+    // fixme:
+    config.harmonic_freq_threshold = 30000000;
 
     if (freq >= config.harmonic_freq_threshold * 7U)
     {

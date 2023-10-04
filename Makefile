@@ -3,6 +3,11 @@
 # NOTE: Can be overridden externally.
 #
 
+CC = /opt/arm/bin/arm-none-eabi-gcc -Isrc
+LD = /opt/arm/bin/arm-none-eabi-gcc -Isrc
+AS = /opt/arm/bin/arm-none-eabi-gcc -Isrc -x assembler-with-cpp -ggdb
+AR = /opt/arm/bin/arm-none-eabi-ar
+
 # Compiler options here.
 ifeq ($(USE_OPT),)
   USE_OPT = -O2 -fno-inline-small-functions -ggdb -fomit-frame-pointer -falign-functions=16 --specs=nano.specs -fstack-usage
@@ -127,9 +132,7 @@ CSRC = $(STARTUPSRC) \
        src/main.c \
        src/strconvert.c \
        src/si5351.c \
-       src/tlv320aic3204.c \
-       src/dsp.c \
-       src/adc.c
+       src/tlv320aic3204.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
@@ -160,7 +163,8 @@ ASMSRC = $(STARTUPASM) $(PORTASM) $(OSALASM)
 
 INCDIR = $(STARTUPINC) $(KERNINC) $(PORTINC) $(OSALINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC)  \
-         $(STREAMSINC) 
+         $(STREAMSINC) \
+         ./src
          
 
 #
@@ -175,16 +179,16 @@ MCU  = cortex-m0
 
 #TRGT = arm-elf-
 TRGT = arm-none-eabi-
-CC   = $(TRGT)gcc
-CPPC = $(TRGT)g++
+CC   ?= $(TRGT)gcc
+CPPC ?= $(TRGT)g++
 # Enable loading with g++ only if you need C++ runtime support.
 # NOTE: You can use C++ even without C++ support if you are careful. C++
 #       runtime support makes code size explode.
-LD   = $(TRGT)gcc
+LD   ?= $(TRGT)gcc
 #LD   = $(TRGT)g++
 CP   = $(TRGT)objcopy
-AS   = $(TRGT)gcc -x assembler-with-cpp -ggdb
-AR   = $(TRGT)ar
+AS   ?= $(TRGT)gcc -x assembler-with-cpp -ggdb
+AR   ?= $(TRGT)ar
 OD   = $(TRGT)objdump
 SZ   = $(TRGT)size
 HEX  = $(CP) -O ihex

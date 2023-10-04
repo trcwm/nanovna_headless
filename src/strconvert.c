@@ -1,3 +1,5 @@
+#include <stdbool.h>
+#include "strconvert.h"
 
 // Use macro, std isdigit more big
 #define _isdigit(c) (c >= '0' && c <= '9')
@@ -61,8 +63,8 @@ calculate:
 
 double my_atof(const char *p)
 {
-    int neg = FALSE;
-    if (*p == '-') neg = TRUE;
+    int neg = false;
+    if (*p == '-') neg = true;
     if (*p == '-' || *p == '+') p++;
     double x = my_atoi(p);
     while (_isdigit((int)*p)) p++;
