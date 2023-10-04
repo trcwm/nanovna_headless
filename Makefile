@@ -92,6 +92,7 @@ PROJECT = ch
 #CHIBIOS = ../ChibiOS-RT
 CHIBIOS = ChibiOS
 PROJ = .
+
 # Startup files.
 include $(CHIBIOS)/os/common/startup/ARMCMx/compilers/GCC/mk/startup_stm32f0xx.mk
 # HAL-OSAL files (optional).
@@ -159,8 +160,8 @@ ASMSRC = $(STARTUPASM) $(PORTASM) $(OSALASM)
 
 INCDIR = $(STARTUPINC) $(KERNINC) $(PORTINC) $(OSALINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC)  \
-         $(STREAMSINC) \
-         src
+         $(STREAMSINC) 
+         
 
 #
 # Project, sources and paths
@@ -216,7 +217,7 @@ UDEFS = -DSHELL_CMD_TEST_ENABLED=FALSE -DSHELL_CMD_MEM_ENABLED=FALSE -DARM_MATH_
 UADEFS =
 
 # List all user directories here
-UINCDIR =
+UINCDIR = 
 
 # List the user directory to look for the libraries here
 ULIBDIR =

@@ -18,18 +18,21 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <stddef.h>
+#include <stdarg.h>
+
 #include <chprintf.h>
 #include <math.h>
 #include <string.h>
 
 #include "strconvert.h"
-
 #include "ch.h"
-//#include "fft.h"
+
 #include "hal.h"
 #include "nanovna.h"
 #include "si5351.h"
 #include "usbcfg.h"
+#include "chprintf.h"
 
 /*
  *  Shell settings
