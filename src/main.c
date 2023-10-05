@@ -58,13 +58,6 @@ void hard_fault_handler_c(uint32_t *sp)
 
 void enter_dfu(void)
 {
-    // touch_stop_watchdog();
-    // int x = 5, y = 20;
-    // lcd_set_colors(LCD_FG_COLOR, LCD_BG_COLOR);
-    //  leave a last message
-    // lcd_clear_screen();
-    // lcd_drawstring(x, y, "DFU: Device Firmware Update Mode\n"
-    //                      "To exit DFU mode, please reset device yourself.");
     boardDFUEnter();
 }
 
@@ -94,6 +87,45 @@ static void duplicate_buffer_to_dump(int16_t *p)
 }
 #endif
 
+void
+dsp_process(int16_t *capture, size_t length)
+{
+  uint32_t *p = (uint32_t*)capture;
+  uint32_t len = length / 2;
+  uint32_t i;
+  int32_t samp_s = 0;
+  int32_t samp_c = 0;
+  int32_t ref_s = 0;
+  int32_t ref_c = 0;
+
+  for (i = 0; i < len; i++) {
+    uint32_t sr = *p++;
+    int16_t ref = sr & 0xffff;
+    int16_t smp = (sr>>16) & 0xffff;
+#ifdef ENABLED_DUMP
+    ref_buf[i] = ref;
+    samp_buf[i] = smp;
+#endif
+    int32_t s = sincos_tbl[i][0];
+    int32_t c = sincos_tbl[i][1];
+    samp_s += smp * s / 16;
+    samp_c += smp * c / 16;
+    ref_s += ref * s / 16;
+    ref_c += ref * c / 16;
+#if 0
+    uint32_t sc = *(uint32_t)&sincos_tbl[i];
+    samp_s = __SMLABB(sr, sc, samp_s);
+    samp_c = __SMLABT(sr, sc, samp_c);
+    ref_s = __SMLATB(sr, sc, ref_s);
+    ref_c = __SMLATT(sr, sc, ref_c);
+#endif
+  }
+  acc_samp_s += samp_s;
+  acc_samp_c += samp_c;
+  acc_ref_s += ref_s;
+  acc_ref_c += ref_c;
+}
+
 #endif
 
 int32_t g_callbackCount = 0;
@@ -101,9 +133,10 @@ int16_t rx_buffer[AUDIO_BUFFER_LEN * 2];
 
 void i2s_end_callback(I2SDriver *i2sp, size_t offset, size_t n)
 {
-    // int16_t *p = &rx_buffer[offset];
     (void)i2sp;
     (void)n;
+
+    int16_t *p = &rx_buffer[offset];
 
 #if PORT_SUPPORTS_RT
     cnt_e = port_rt_get_counter_value();
@@ -111,7 +144,7 @@ void i2s_end_callback(I2SDriver *i2sp, size_t offset, size_t n)
     stat.busy_cycles = cnt_e - cnt_s;
     stat.last_counter_value = cnt_s;
 #endif
-    // stat.callback_count++;
+
     g_callbackCount++;
 }
 

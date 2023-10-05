@@ -40,38 +40,6 @@
 #define POINTS_COUNT 101
 extern float measured[2][POINTS_COUNT][2];
 
-#define CAL_LOAD 0
-#define CAL_OPEN 1
-#define CAL_SHORT 2
-#define CAL_THRU 3
-#define CAL_ISOLN 4
-
-#define CALSTAT_LOAD (1<<0)
-#define CALSTAT_OPEN (1<<1)
-#define CALSTAT_SHORT (1<<2)
-#define CALSTAT_THRU (1<<3)
-#define CALSTAT_ISOLN (1<<4)
-#define CALSTAT_ES (1<<5)
-#define CALSTAT_ER (1<<6)
-#define CALSTAT_ET (1<<7)
-#define CALSTAT_ED CALSTAT_LOAD
-#define CALSTAT_EX CALSTAT_ISOLN
-#define CALSTAT_APPLY (1<<8)
-#define CALSTAT_INTERPOLATED (1<<9)
-
-#define MAX_FREQ_TYPE 5
-enum stimulus_type
-{
-    ST_START=0, ST_STOP, ST_CENTER, ST_SPAN, ST_CW
-};
-
-void toggle_sweep(void);
-
-#define SWEEP_ENABLE  0x01
-#define SWEEP_ONCE    0x02
-extern int8_t sweep_mode;
-extern const char *info_about[];
-
 /*
  * dsp.c
  */
