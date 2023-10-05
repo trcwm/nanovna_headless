@@ -37,9 +37,6 @@
 // pi const
 #define VNA_PI                   3.14159265358979323846
 
-#define POINTS_COUNT 101
-extern float measured[2][POINTS_COUNT][2];
-
 /*
  * dsp.c
  */
