@@ -97,3 +97,38 @@ double my_atof(const char *p)
     if (neg) x = -x;
     return x;
 }
+
+//
+// Function used for search substring v in list
+// Example need search parameter "center" in "start|stop|center|span|cw" getStringIndex
+// return 2 If not found return -1 Used for easy parse command arguments
+int get_str_index(char *v, const char *list)
+{
+    int i = 0;
+    while (1)
+    {
+        char *p = v;
+        while (1)
+        {
+            char c = *list;
+            if (c == '|') c = 0;
+            if (c == *p++)
+            {
+                // Found, return index
+                if (c == 0) return i;
+                list++;  // Compare next symbol
+                continue;
+            }
+            break;  // Not equal, break
+        }
+        // Set new substring ptr
+        while (1)
+        {
+            // End of string, not found
+            if (*list == 0) return -1;
+            if (*list++ == '|') break;
+        }
+        i++;
+    }
+    return -1;
+}

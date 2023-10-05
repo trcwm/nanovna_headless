@@ -4,7 +4,7 @@
 #
 
 CC = /opt/arm/bin/arm-none-eabi-gcc -Isrc
-LD = /opt/arm/bin/arm-none-eabi-gcc -Isrc
+LD = /opt/arm/bin/arm-none-eabi-gcc -Isrc 
 AS = /opt/arm/bin/arm-none-eabi-gcc -Isrc -x assembler-with-cpp -ggdb
 AR = /opt/arm/bin/arm-none-eabi-ar
 OD = /opt/arm/bin/arm-none-eabi-objdump
@@ -135,7 +135,9 @@ CSRC = $(STARTUPSRC) \
        src/usbcfg.c \
        src/main.c \
        src/strconvert.c \
+       src/cobs.c \
        src/si5351.c \
+       src/cmdhandler.c \
        src/tlv320aic3204.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -245,3 +247,4 @@ flash: build/ch.bin
 
 dfu:
 	-printf "reset dfu\r" >$(DEVICE) && sleep 1
+

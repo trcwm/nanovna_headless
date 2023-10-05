@@ -15,3 +15,8 @@ int32_t my_atoi(const char *p);
 uint32_t my_atoui(const char *p);
 
 double my_atof(const char *p);
+
+// Function used for search substring v in list
+// Example need search parameter "center" in "start|stop|center|span|cw" getStringIndex
+// return 2 If not found return -1 Used for easy parse command arguments
+int get_str_index(char *v, const char *list);
