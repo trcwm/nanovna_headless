@@ -6,7 +6,7 @@
             "type": "cortex-debug",
             "request": "launch",
             "servertype": "stutil",
-            "executable": "${workspaceRoot}/build/nanovna",
+            "executable": "${workspaceRoot}/build/ch.elf",
             "cwd": "${workspaceRoot}",
             "svdFile": "STM32F0x1.svd",
             "device": "stm32f0x",

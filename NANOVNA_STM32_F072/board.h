@@ -748,6 +748,7 @@
 extern "C" {
 #endif
   void boardInit(void);
+  void boardDFUEnter(void);
 #ifdef __cplusplus
 }
 #endif

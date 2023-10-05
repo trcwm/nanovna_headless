@@ -33,6 +33,18 @@
 #include "si5351.h"
 #include "usbcfg.h"
 
+void enter_dfu(void)
+{
+  //touch_stop_watchdog();
+  //int x = 5, y = 20;
+  //lcd_set_colors(LCD_FG_COLOR, LCD_BG_COLOR);
+  // leave a last message 
+  //lcd_clear_screen();
+  //lcd_drawstring(x, y, "DFU: Device Firmware Update Mode\n"
+  //                     "To exit DFU mode, please reset device yourself.");
+  boardDFUEnter();
+}
+
 /*
  *  Shell settings
  */
@@ -106,6 +118,7 @@ static THD_FUNCTION(Thread1, arg)
         {
             __WFI();
         }
+
         // Run Shell command in sweep thread
         if (shell_function)
         {
@@ -482,7 +495,7 @@ usage:
 // main loop for measurement
 bool sweep(bool break_on_operation)
 {
-    shell_printf("AYE\r\n");
+    //shell_printf("AYE\r\n");
     return;    
 #if 0    
     int i, delay;
@@ -925,9 +938,10 @@ int main(void)
      * after a reset.
      */
     usbDisconnectBus(serusbcfg.usbp);
-    chThdSleepMilliseconds(100);
+    chThdSleepMilliseconds(200);
     usbStart(serusbcfg.usbp, &usbcfg);
     usbConnectBus(serusbcfg.usbp);
+    chThdSleepMilliseconds(200);
 
 #if 0
     /*

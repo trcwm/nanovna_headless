@@ -7,10 +7,14 @@ CC = /opt/arm/bin/arm-none-eabi-gcc -Isrc
 LD = /opt/arm/bin/arm-none-eabi-gcc -Isrc
 AS = /opt/arm/bin/arm-none-eabi-gcc -Isrc -x assembler-with-cpp -ggdb
 AR = /opt/arm/bin/arm-none-eabi-ar
+OD = /opt/arm/bin/arm-none-eabi-objdump
+CP = /opt/arm/bin/arm-none-eabi-objcopy
+SZ = /opt/arm/bin/arm-none-eabi-size
 
 # Compiler options here.
 ifeq ($(USE_OPT),)
   USE_OPT = -O2 -fno-inline-small-functions -ggdb -fomit-frame-pointer -falign-functions=16 --specs=nano.specs -fstack-usage
+  #USE_OPT = -fno-inline-small-functions -ggdb -fomit-frame-pointer -falign-functions=16 --specs=nano.specs -fstack-usage
 endif
 
 # C specific options here (added to USE_OPT).
@@ -186,11 +190,11 @@ CPPC ?= $(TRGT)g++
 #       runtime support makes code size explode.
 LD   ?= $(TRGT)gcc
 #LD   = $(TRGT)g++
-CP   = $(TRGT)objcopy
+CP   ?= $(TRGT)objcopy
 AS   ?= $(TRGT)gcc -x assembler-with-cpp -ggdb
 AR   ?= $(TRGT)ar
-OD   = $(TRGT)objdump
-SZ   = $(TRGT)size
+OD   ?= $(TRGT)objdump
+SZ   ?= $(TRGT)size
 HEX  = $(CP) -O ihex
 BIN  = $(CP) -O binary
 
