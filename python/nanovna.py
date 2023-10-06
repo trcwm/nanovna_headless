@@ -23,8 +23,8 @@ class NanoVNA:
         
     def open(self):
         if self.serial is None:
-            self.serial = serial.Serial(self.dev, timeout=1)
-
+            self.serial = serial.Serial(self.dev, timeout=2)
+            self.serial.flush()
     def close(self):
         if self.serial:
             self.serial.close()
@@ -61,10 +61,17 @@ if __name__ == '__main__':
 
     nv = NanoVNA(opt.device or getport())
 
-    data = cobs.encode(b'\x00')
+    data = cobs.encode(b'\x01')
     data = data + b'\x00'
 
-    print("Sending: ")
-    print(''.join(format(x, '02x') for x in data))
+    print("Sending get callback count:")
+    print(' '.join(format(x, '02x') for x in data))
     nv.send_command(data)
+
+    data = cobs.encode(b'\x01')
+    data = data + b'\x00'
+
+    print("Sending get raw buffer:")
+    print(' '.join(format(x, '02x') for x in data))
+    nv.send_command(data)    
 

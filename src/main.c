@@ -27,6 +27,7 @@
 #include "chprintf.h"
 #include "strconvert.h"
 #include "ch.h"
+#include "dsp.h"
 
 #include "hal.h"
 #include "nanovna.h"
@@ -134,16 +135,9 @@ int16_t rx_buffer[AUDIO_BUFFER_LEN * 2];
 void i2s_end_callback(I2SDriver *i2sp, size_t offset, size_t n)
 {
     (void)i2sp;
-    (void)n;
 
-    int16_t *p = &rx_buffer[offset];
-
-#if PORT_SUPPORTS_RT
-    cnt_e = port_rt_get_counter_value();
-    stat.interval_cycles = cnt_s - stat.last_counter_value;
-    stat.busy_cycles = cnt_e - cnt_s;
-    stat.last_counter_value = cnt_s;
-#endif
+    uint32_t *p = (uint32_t*)&rx_buffer[offset];
+    dspCallback(p, n);
 
     g_callbackCount++;
 }
@@ -250,6 +244,10 @@ int main(void)
 
     // create sweep thread
     chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO - 1, Thread1, NULL);
+
+    si5351_set_frequency(10000000, SI5351_CLK_DRIVE_STRENGTH_2MA);
+    //tlv320aic3204_select(0); // select REFLECT channel
+    tlv320aic3204_select(1); // select TRANSMISSION channel
 
     while (true)
     {

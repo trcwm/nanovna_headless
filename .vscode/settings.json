@@ -12,7 +12,8 @@
         "hal_streams.h": "c",
         "nanovna.h": "c",
         "usbd.h": "c",
-        "rcc.h": "c"
+        "rcc.h": "c",
+        "iostream": "cpp"
     },
     "cortex-debug.armToolchainPath": "/opt/arm/bin/"
 }

@@ -4,8 +4,20 @@
 #include "si5351.h"
 #include "usbcfg.h"
 #include "cmdhandler.h"
+#include "dsp.h"
 
-extern int16_t g_callbackCount;
+void * memcpy(void *dst, const void *src, size_t bytes)
+{
+    uint8_t *s = src;
+    uint8_t *d = dst;
+    for(size_t i=0; i<bytes; i++)
+    {
+        *d++ = *s++;
+    }
+    return dst;
+}
+
+extern int32_t g_callbackCount;
 
 // If need run shell as thread (use more amount of memory fore stack), after
 // enable this need reduce spi_buffer size, by default shell run in main thread
@@ -13,7 +25,11 @@ extern int16_t g_callbackCount;
 
 BaseSequentialStream *gs_usb_stream = (BaseSequentialStream *)&SDU1;
 
-// Shell max command size
+// ******************************************************************************************
+//   Command buffer, data from PC
+// ******************************************************************************************
+
+// Command buffer max command size
 #define CMD_MAX_LENGTH 32
 
 typedef struct CmdBuffer
@@ -24,82 +40,57 @@ typedef struct CmdBuffer
 
 CmdBuffer_t gs_cmdbuffer;
 
+// ******************************************************************************************
+//   Background thread for measurements
+// ******************************************************************************************
+
 void cmdBackgroundThread()
 {
     while(true)
     {
         __WFI();
-        osalThreadSleepMilliseconds(10);
+        //palClearPad(GPIOC, GPIOC_LED);
 
-#if 0
-        bool completed = false;
-        if (sweep_mode & (SWEEP_ENABLE | SWEEP_ONCE))
-        {
-            completed = sweep(true);
-            sweep_mode &= ~SWEEP_ONCE;
-        }
-        else
-        {
-            
-        }
+        // send data to PC
+        //const size_t dataLen = sizeof(int32_t)*4;
+        //uint8_t buffer[dataLen + 2];
+        //uint32_t len = cobsEncode(gs_measurements, dataLen, buffer);
+        //resultPacket[len++] = 0;
+        //streamWrite(gs_usb_stream, resultPacket, len);
+        //palSetPad(GPIOC, GPIOC_LED);
+    }
+}
 
-        // Run Shell command in sweep thread
-        if (shell_function)
-        {
-            shell_function(shell_nargs - 1, &shell_args[1]);
-            shell_function = 0;
-            osalThreadSleepMilliseconds(10);
-            continue;
-        }
-
-        if (sweep_mode & SWEEP_ENABLE && completed)
-        {
-            #if 0
-            if ((domain_mode & DOMAIN_MODE) == DOMAIN_TIME) transform_domain();
-            // Prepare draw graphics, cache all lines, mark screen cells for redraw
-            plot_into_index(measured);
-            redraw_request |= REDRAW_CELLS | REDRAW_BATTERY;
-
-            if (uistat.marker_tracking)
-            {
-                int i = marker_search();
-                if (i != -1 && active_marker != -1)
-                {
-                    markers[active_marker].index = i;
-                    redraw_request |= REDRAW_MARKER;
-                }
-            }
-            #endif
-        }
-
-        // plot trace and other indications as raster
-        // draw_all(completed);  // flush markmap only if scan completed to prevent
-        // remaining traces
-        #endif 
-    }   
-    
+void sendErrorPacket(const uint8_t commandCode)
+{
+    const uint8_t errorPacket[2] = {0xFF, commandCode};
+    uint8_t resultPacket[4];
+    uint8_t len = cobsEncode(errorPacket, 2, resultPacket);
+    resultPacket[len++] = 0; // add packet terminator
+    streamWrite(gs_usb_stream, resultPacket, len);
 }
 
 void submitCmdByte(uint8_t c)
 {
     if (gs_cmdbuffer.m_len < CMD_MAX_LENGTH)
     {
-        gs_cmdbuffer.m_buffer[gs_cmdbuffer.m_len++] = c;
+        gs_cmdbuffer.m_buffer[gs_cmdbuffer.m_len] = c;
+        
         if (c == 0) /* end of COBS buffer */
         {
             uint8_t cmddata[CMD_MAX_LENGTH+1];
             uint8_t datasize = cobsDecode(gs_cmdbuffer.m_buffer, gs_cmdbuffer.m_len, cmddata);
+            gs_cmdbuffer.m_len = 0;
             bool result = executeCmd(cmddata, datasize);
             
-            uint8_t resultPacket[3];
             if (!result)
             {
-                const uint8_t errorPacket = 0xFF;
-                // answer with error packet
-                uint8_t len = cobsEncode(&errorPacket, 1, resultPacket);
-                resultPacket[len++] = 0;
-                streamWrite(gs_usb_stream, resultPacket, len);
+                sendErrorPacket(cmddata[0]);
             }
+        }
+        else
+        {
+            gs_cmdbuffer.m_len++;
         }
     }
     else
@@ -114,21 +105,45 @@ bool executeCmd(const uint8_t *data, uint8_t datasize)
     if (datasize == 0) return false;
 
     uint8_t len = 0;
-    uint8_t dataBuffer[32];
+    uint8_t dataBuffer[48*2+2];
     uint8_t resultBuffer[sizeof(dataBuffer) + 2];
 
     switch(data[0])
     {
     case 0x00:  /* get number of callbacks */
         dataBuffer[len++] = 0x00; // the command
-        dataBuffer[len++] = g_callbackCount & 0xFF; // LSB first
-        dataBuffer[len++] = (g_callbackCount>>8) & 0xFF;
-        dataBuffer[len++] = (g_callbackCount>>16) & 0xFF;
-        dataBuffer[len++] = (g_callbackCount>>24) & 0xFF;
+        memcpy(dataBuffer+1, &g_callbackCount, sizeof(g_callbackCount));
+        len += sizeof(g_callbackCount);
         len = cobsEncode(dataBuffer, len, resultBuffer);
         resultBuffer[len++] = 0;
         streamWrite(gs_usb_stream, resultBuffer, len);
         return true;
+    case 0x01:  /* get RAW buffer*/
+        if (!dspIsDone() && !dspIsIdle())
+        {
+            return false;
+        }
+        dspRaw();
+        dataBuffer[0] = 0x01;
+        dspWaitDone();  // FIXME: this should have a time-out..
+        memcpy(dataBuffer+1, (const uint8_t*)dspGetRawBufferPtr(), 48*2);
+        len = cobsEncode(dataBuffer, 48*2+1, resultBuffer);
+        resultBuffer[len++] = 0;
+        streamWrite(gs_usb_stream, resultBuffer, len);
+        return true;
+    case 0x02:  /* get accumulated data*/
+        if (!dspIsDone() && !dspIsIdle())
+        {
+            return false;
+        }
+        dspStart(1);
+        dataBuffer[0] = 0x02;
+        dspWaitDone();  // FIXME: this should have a time-out..
+        memcpy(dataBuffer+1, (const uint8_t*)dspGetAccumulatorPtr(), sizeof(DSPAccumulators_t));
+        len = cobsEncode(dataBuffer, sizeof(DSPAccumulators_t)+1, resultBuffer);
+        resultBuffer[len++] = 0;
+        streamWrite(gs_usb_stream, resultBuffer, len);
+        return true;        
     }
     
     return false;
@@ -655,3 +670,4 @@ VNA_SHELL_FUNCTION(cmd_help)
     return;
 }
 #endif 
+

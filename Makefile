@@ -133,12 +133,13 @@ CSRC = $(STARTUPSRC) \
        $(BOARDSRC) \
        $(STREAMSSRC) \
        src/usbcfg.c \
-       src/main.c \
        src/strconvert.c \
        src/cobs.c \
        src/si5351.c \
        src/cmdhandler.c \
-       src/tlv320aic3204.c
+       src/tlv320aic3204.c \
+       src/dsp.c \
+       src/main.c
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
