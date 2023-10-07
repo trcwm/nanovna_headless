@@ -24,6 +24,37 @@ struct Accumulators
 };
 #pragma pack()
 
+void reportMeasurement(const Accumulators *accus)
+{
+    if (accus != nullptr)
+    {
+        float angleRef;
+        float angleCh;
+        float magRef;
+        float magCh;
+
+        float refI;
+        float refQ;
+        float chI;
+        float chQ;
+
+        std::cout << "  ref I: " << accus->m_refI << "\n";
+        std::cout << "  ref Q: " << accus->m_refQ << "\n";
+        std::cout << "  ch  I: " << accus->m_chI << "\n";
+        std::cout << "  ch  Q: " << accus->m_chQ << "\n";
+        refI = accus->m_refI / (30000.0f * 32768.0f);
+        refQ = accus->m_refQ / (30000.0f * 32768.0f);
+        chI = accus->m_chI / (30000.0f * 32768.0f);
+        chQ = accus->m_chQ / (30000.0f * 32768.0f);                    
+        magRef = 20.0f*log10(sqrt(refI*refI + refQ*refQ));
+        magCh  = 20.0f*log10(sqrt(chI*chI + chQ*chQ));
+        angleRef = 180.0f * atan2(refQ, refI) / 3.1415927f;
+        angleCh = 180.0f * atan2(chQ, chI) / 3.1415927f;
+        std::cout << "  ch   : " << (magCh - magRef) << " dB\n";
+        std::cout << "         " << (angleCh - angleRef) << " deg.\n";
+    }
+}
+
 void handleRX(int serial_port)
 {
     static_assert(sizeof(Accumulators) == 16);
@@ -31,16 +62,6 @@ void handleRX(int serial_port)
     const Accumulators *accus;
     uint8_t rxBuffer[255];
     uint8_t cobsBuffer[sizeof(rxBuffer)+2];
-
-    float angleRef;
-    float angleCh;
-    float magRef;
-    float magCh;
-
-    float refI;
-    float refQ;
-    float chI;
-    float chQ;
 
     int samples = 0;
     const int16_t *samplePtr;
@@ -72,20 +93,7 @@ void handleRX(int serial_port)
                     break;
                 case 0x02:
                     accus = reinterpret_cast<const Accumulators*>(cobsBuffer+1);
-                    std::cout << "  ref I: " << accus->m_refI << "\n";
-                    std::cout << "  ref Q: " << accus->m_refQ << "\n";
-                    std::cout << "  ch  I: " << accus->m_chI << "\n";
-                    std::cout << "  ch  Q: " << accus->m_chQ << "\n";
-                    refI = accus->m_refI / (30000.0f * 32768.0f);
-                    refQ = accus->m_refQ / (30000.0f * 32768.0f);
-                    chI = accus->m_chI / (30000.0f * 32768.0f);
-                    chQ = accus->m_chQ / (30000.0f * 32768.0f);                    
-                    magRef = 20.0f*log10(sqrt(refI*refI + refQ*refQ));
-                    magCh  = 20.0f*log10(sqrt(chI*chI + chQ*chQ));
-                    angleRef = 180.0f * atan2(refQ, refI) / 3.1415927f;
-                    angleCh = 180.0f * atan2(chQ, chI) / 3.1415927f;
-                    std::cout << "  ch   : " << (magCh - magRef) << " dB\n";
-                    std::cout << "         " << (angleCh - angleRef) << " deg.\n";
+                    reportMeasurement(accus);
                     break;   
                 case 0x03:  // set frequency
                     std::cout << " set freq ok\n";
@@ -96,7 +104,17 @@ void handleRX(int serial_port)
                     break;
                 case 0x05:  // input select
                     std::cout << "  input select\n";
-                    break;                    
+                    break;                 
+                case 0x06:  // list of measurements (up to 6)
+                    accus = reinterpret_cast<const Accumulators*>(cobsBuffer+1);
+                    len--;  // skip the cmd id byte
+                    while(len >= sizeof(Accumulators))
+                    {
+                        reportMeasurement(accus);
+                        accus++;
+                        len -= sizeof(Accumulators);
+                    }
+                    break;
                 case 0xFF:  // error response
                     std::cout << "  error!\n";
                     break;
@@ -178,7 +196,7 @@ int main(int argc, const char *argv[])
 
     tcsetattr(serial_port, TCSAFLUSH, &tty);
 
-    uint8_t cmdBuffer[8];
+    uint8_t cmdBuffer[32];
     uint8_t cobsBuffer[sizeof(cmdBuffer)+2];
     uint32_t freq = 10000000;   
 
@@ -188,7 +206,10 @@ int main(int argc, const char *argv[])
     std::cout << "0) get I2S buffer callback counter\n";
     std::cout << "1) dump raw int16_t measurement buffer\n";
     std::cout << "2) dump accumulators\n";
+    std::cout << "6) measure 6 frequencies\n";
     std::cout << "f) get frequency\n";
+    std::cout << "r) set reflection channel\n";
+    std::cout << "t) set transmission channel\n";
     std::cout << "+) increase frequency by 100 kHz\n";
     std::cout << "-) decrease frequency by 100 kHz\n";
     std::cout << "q) exit\n\n";
@@ -218,6 +239,21 @@ int main(int argc, const char *argv[])
             cobsBuffer[len++] = 0;
             sendBuffer(serial_port, cobsBuffer, len);
             handleRX(serial_port);
+            break;
+        case '6':   // measure list of frequencies
+            {
+                cmdBuffer[0] = '\x06';
+                cmdBuffer[1] = '\x06';  // six frequencies
+                uint32_t *freqs = (uint32_t *)(cmdBuffer+2);
+                for(int i=0; i<6; i++)
+                {
+                    *freqs++ = freq + 100000*i;
+                }
+                len = cobsEncode(cmdBuffer, 6*sizeof(uint32_t)+2, cobsBuffer);
+                cobsBuffer[len++] = 0;
+                sendBuffer(serial_port, cobsBuffer, len);
+                handleRX(serial_port);
+            }
             break;
         case 'f':   // get frequency
             cmdBuffer[0] = '\x04';

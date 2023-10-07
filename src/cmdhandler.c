@@ -2,6 +2,7 @@
 #include "hal.h"
 #include "cobs.h"
 #include "si5351.h"
+#include "tlv320aic3204.h"
 #include "usbcfg.h"
 #include "cmdhandler.h"
 #include "dsp.h"
@@ -149,7 +150,7 @@ bool executeCmd(const uint8_t *data, uint8_t datasize)
         {
             dataBuffer[0] = 0x03;
             // unaligned problems?!
-            uint32_t freq; //= *(const uint32_t*)(data+1);
+            uint32_t freq;
             uint8_t* freqPtr = (uint8_t*)&freq;
             freqPtr[0] = data[1];
             freqPtr[1] = data[2];
@@ -173,6 +174,9 @@ bool executeCmd(const uint8_t *data, uint8_t datasize)
         return true;
     case 0x05:  /* set measurement channel */
         {
+            // FIXME: we need to wait a certain amount after 
+            // setting the channel to avoid glitches
+            // -> 2 I2S blocks
             switch(data[1])
             {
             case 0:
@@ -187,6 +191,42 @@ bool executeCmd(const uint8_t *data, uint8_t datasize)
 
             dataBuffer[0] = 0x05;
             len = cobsEncode(dataBuffer, 1, resultBuffer);
+            resultBuffer[len++] = 0;
+            streamWrite(gs_usb_stream, resultBuffer, len);
+        }
+        return true;
+    case 0x06: /* measure list of frequencies, max 6 */
+        {
+            dataBuffer[0] = 0x06;
+            uint32_t freq;
+            uint8_t numFrequencies = data[1];
+
+            if ((numFrequencies == 0) || (numFrequencies > 6))
+            {
+                return false;
+            }
+
+            const uint8_t *freqDataPtr = data + 2;
+            uint8_t *outDataPtr = dataBuffer+1;
+            uint8_t outDataSize = 1;
+            for(int i=0; i<numFrequencies; i++)
+            {
+                // take care of unaligned data                
+                memcpy(&freq, freqDataPtr+sizeof(freq)*i, sizeof(freq));
+                
+                // delay is approximately in ms.
+                int delay = si5351_set_frequency(freq, SI5351_CLK_DRIVE_STRENGTH_2MA) + 1;
+                chThdSleepMilliseconds(delay);
+                
+                dspStart(1);
+                dspWaitDone();  // FIXME: this should have a time-out..
+
+                memcpy(outDataPtr, dspGetAccumulatorPtr(), sizeof(DSPAccumulators_t));
+                outDataPtr  += sizeof(DSPAccumulators_t);
+                outDataSize += sizeof(DSPAccumulators_t);
+            }
+
+            len = cobsEncode(dataBuffer, outDataSize, resultBuffer);
             resultBuffer[len++] = 0;
             streamWrite(gs_usb_stream, resultBuffer, len);
         }

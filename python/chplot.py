@@ -60,6 +60,8 @@ data = np.array([
 #data = np.append(data, np.zeros(4096-len(data)))
 #data = signal.resample(data, len(data)*10)
 
+print("One block of I2S data is", len(data),"samples per channel")
+
 X = rfft(data)
 Xf = rfftfreq(len(data), 1 / 48000)
 
