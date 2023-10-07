@@ -41,6 +41,8 @@ typedef struct CmdBuffer
 
 CmdBuffer_t gs_cmdbuffer;
 
+static uint8_t gs_numI2SBlocks = 1;
+
 // ******************************************************************************************
 //   Background thread for measurements
 // ******************************************************************************************
@@ -137,7 +139,7 @@ bool executeCmd(const uint8_t *data, uint8_t datasize)
         {
             return false;
         }
-        dspStart(1);
+        dspStart(gs_numI2SBlocks);
         dataBuffer[0] = 0x02;
         dspWaitDone();  // FIXME: this should have a time-out..
         memcpy(dataBuffer+1, (const uint8_t*)dspGetAccumulatorPtr(), sizeof(DSPAccumulators_t));
@@ -218,7 +220,7 @@ bool executeCmd(const uint8_t *data, uint8_t datasize)
                 int delay = si5351_set_frequency(freq, SI5351_CLK_DRIVE_STRENGTH_2MA) + 1;
                 chThdSleepMilliseconds(delay);
                 
-                dspStart(1);
+                dspStart(gs_numI2SBlocks);
                 dspWaitDone();  // FIXME: this should have a time-out..
 
                 memcpy(outDataPtr, dspGetAccumulatorPtr(), sizeof(DSPAccumulators_t));
@@ -230,6 +232,22 @@ bool executeCmd(const uint8_t *data, uint8_t datasize)
             resultBuffer[len++] = 0;
             streamWrite(gs_usb_stream, resultBuffer, len);
         }
+        return true;
+    case 0x07: /* set number of I2S block for integration */
+        {
+            uint8_t numBlocks = data[1];
+            if (numBlocks == 0)
+            {
+                return false;
+            }
+
+            gs_numI2SBlocks = numBlocks;
+
+            dataBuffer[0] = 0x07;
+            len = cobsEncode(dataBuffer, 1, resultBuffer);
+            resultBuffer[len++] = 0;
+            streamWrite(gs_usb_stream, resultBuffer, len);
+        }        
         return true;
     }
     

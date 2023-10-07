@@ -73,7 +73,7 @@ void handleRX(int serial_port)
         if ((bytes == 1) && (rxBuffer[totalBytes] == 0))
         {
             size_t len = cobsDecode(rxBuffer, totalBytes, cobsBuffer);
-            std::cout << " RX " << len << "bytes\n";
+            std::cout << " RX " << len << " bytes\n";
             if (len > 0)
             {
                 uint8_t cmd = cobsBuffer[0];
@@ -103,7 +103,7 @@ void handleRX(int serial_port)
                         (*reinterpret_cast<uint32_t*>(cobsBuffer+1)/1000) << " kHz \n";
                     break;
                 case 0x05:  // input select
-                    std::cout << "  input select\n";
+                    std::cout << "  input select ok\n";
                     break;                 
                 case 0x06:  // list of measurements (up to 6)
                     accus = reinterpret_cast<const Accumulators*>(cobsBuffer+1);
@@ -114,6 +114,9 @@ void handleRX(int serial_port)
                         accus++;
                         len -= sizeof(Accumulators);
                     }
+                    break;
+                case 0x07:
+                    std::cout << "set I2S blocks ok\n";
                     break;
                 case 0xFF:  // error response
                     std::cout << "  error!\n";
@@ -147,7 +150,7 @@ void handleRX(int serial_port)
 
 void sendBuffer(int serial_port, const uint8_t *buffer, size_t len)
 {
-    std::cout << " TX " << len << "bytes\n";
+    std::cout << " TX " << len << " bytes\n";
     for(size_t i=0; i<len; i++)
     {
         printf(" %02X", buffer[i]);
@@ -199,6 +202,7 @@ int main(int argc, const char *argv[])
     uint8_t cmdBuffer[32];
     uint8_t cobsBuffer[sizeof(cmdBuffer)+2];
     uint32_t freq = 10000000;   
+    bool    i2sblocks = false;
 
     size_t len;
     bool quit = false;
@@ -253,6 +257,27 @@ int main(int argc, const char *argv[])
                 cobsBuffer[len++] = 0;
                 sendBuffer(serial_port, cobsBuffer, len);
                 handleRX(serial_port);
+            }
+            break;
+        case '7':   // set number of I2S blocks to integrate, toggle for now
+            i2sblocks = !i2sblocks;
+            if (!i2sblocks)
+            {
+                cmdBuffer[0] = '\x07';
+                cmdBuffer[1] = '\x01';
+                len = cobsEncode(cmdBuffer, 2, cobsBuffer);
+                cobsBuffer[len++] = 0;
+                sendBuffer(serial_port, cobsBuffer, len);
+                handleRX(serial_port);                
+            }
+            else
+            {
+                cmdBuffer[0] = '\x07';
+                cmdBuffer[1] = '\x10';
+                len = cobsEncode(cmdBuffer, 2, cobsBuffer);
+                cobsBuffer[len++] = 0;
+                sendBuffer(serial_port, cobsBuffer, len);
+                handleRX(serial_port);                                
             }
             break;
         case 'f':   // get frequency

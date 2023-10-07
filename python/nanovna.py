@@ -49,7 +49,6 @@ class NanoVNA:
             else:
                 data += byte
                 
-
 if __name__ == '__main__':
     from optparse import OptionParser
     parser = OptionParser(usage="%prog: [options]")

@@ -150,7 +150,7 @@ static const I2SConfig i2sconfig =
         AUDIO_BUFFER_LEN * 2,
         NULL,             // tx callback
         i2s_end_callback, // rx callback
-        0,                // i2scfgr
+        0,                // i2scfgr <-- change this for 24 bit mode operation...
         2                 // i2spr
 };
 

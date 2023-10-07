@@ -284,7 +284,7 @@ void dspStart(uint32_t blockCount)
 {
     gs_dspContext.m_ncoAccu = 0;
     gs_dspContext.m_ncoIncr = (uint32_t)((5000.0f / 48000.0f) * 65536.0f * 256.0f); // 5 kHz increment
-        
+
     gs_dspContext.m_blockCounter = blockCount;
     gs_dspContext.m_accus.m_chI = 0;
     gs_dspContext.m_accus.m_chQ = 0;
@@ -335,10 +335,10 @@ void dspCallback(const uint32_t *ptr, size_t n)
 
                 calcNCO(&s, &c);
 
-                gs_dspContext.m_accus.m_chI  += ch * s / 16;
-                gs_dspContext.m_accus.m_chQ  += ch * c / 16;
-                gs_dspContext.m_accus.m_refI += ref * s / 16;
-                gs_dspContext.m_accus.m_refQ += ref * c / 16;
+                gs_dspContext.m_accus.m_chI  += (ch * s) / 1024;
+                gs_dspContext.m_accus.m_chQ  += (ch * c) / 1024;
+                gs_dspContext.m_accus.m_refI += (ref * s) / 1024;
+                gs_dspContext.m_accus.m_refQ += (ref * c) / 1024;
             }
 
             gs_dspContext.m_blockCounter--;
