@@ -8,7 +8,7 @@
 
 void * memcpy(void *dst, const void *src, size_t bytes)
 {
-    uint8_t *s = src;
+    const uint8_t *s = src;
     uint8_t *d = dst;
     for(size_t i=0; i<bytes; i++)
     {

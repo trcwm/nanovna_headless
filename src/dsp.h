@@ -25,6 +25,8 @@ typedef struct DSPContext_t
     DSPAccumulators_t m_accus;
     int32_t    m_blockCounter;
     int16_t    m_rawBuffer[48];
+    uint32_t   m_ncoAccu;           ///< Q16.16
+    uint32_t   m_ncoIncr;           ///< Q16.16
 } DSPContext_t;
 
 void dspReset(void);

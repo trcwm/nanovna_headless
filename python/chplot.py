@@ -2,6 +2,9 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy.fft import rfft, rfftfreq
+from scipy.fft import fft, fftfreq
+from scipy import signal
 
 data = np.array([
 -3436,
@@ -54,10 +57,48 @@ data = np.array([
   -238
 ])
 
-n = np.linspace(0, len(data), len(data))
+#data = np.append(data, np.zeros(4096-len(data)))
+#data = signal.resample(data, len(data)*10)
+
+X = rfft(data)
+Xf = rfftfreq(len(data), 1 / 48000)
+
+n = np.linspace(0, len(data), len(data), endpoint=False)
+print(n)
 
 plt.figure(1)
-plt.plot(n, data, n, 32000.0*np.sin(2.0*3.1415927*(n+0.5) * 5000/48000))
+plt.plot(n, data, n, -10000.0*np.sin(2.0*3.1415927*(n+0.5) * 5000/48000))
+plt.plot(n, data)
 plt.grid()
-plt.show()
+plt.title("NanoVNA RAW buffer waveform")
 
+plt.figure(2)
+plt.plot(Xf, 20*np.log10(np.abs(X)))
+plt.grid()
+plt.title("NanoVNA RAW buffer waveform spectrum")
+
+nco = np.exp(-2j*3.1415027*n * 5000/48000)
+dmix = np.multiply(data, nco)
+
+plt.figure(3)
+plt.plot(n, np.real(dmix), n, np.imag(dmix))
+plt.grid()
+plt.title("NanoVNA down-mixer RAW buffer")
+
+X2  = np.fft.fftshift(fft(dmix))
+Xf2 = np.fft.fftshift(fftfreq(len(dmix), 1 / 48000))
+
+b = np.ones(len(data))/len(data)
+w,h = signal.freqz(b,1, 4096, fs=48000)
+
+plt.figure(4)
+plt.plot(Xf2, 20*np.log10(np.abs(X2)), w, 100+20*np.log10(np.abs(h)))
+plt.grid()
+plt.title("NanoVNA down-mixed RAW buffer waveform spectrum")
+
+I = np.sum(np.real(dmix))
+Q = np.sum(np.imag(dmix))
+print(I,Q)
+print("angle = ", 180.0*np.arctan2(Q,I)/np.pi)
+
+plt.show()
