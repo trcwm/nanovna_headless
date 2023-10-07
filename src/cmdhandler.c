@@ -6,7 +6,7 @@
 #include "cmdhandler.h"
 #include "dsp.h"
 
-void * memcpy(void *dst, const void *src, size_t bytes)
+void* memcpy(void *dst, const void *src, size_t bytes)
 {
     const uint8_t *s = src;
     uint8_t *d = dst;
@@ -143,7 +143,49 @@ bool executeCmd(const uint8_t *data, uint8_t datasize)
         len = cobsEncode(dataBuffer, sizeof(DSPAccumulators_t)+1, resultBuffer);
         resultBuffer[len++] = 0;
         streamWrite(gs_usb_stream, resultBuffer, len);
-        return true;        
+        return true;  
+    case 0x03:  /* set frequency */
+        if (datasize < 5) return false;
+        {
+            dataBuffer[0] = 0x03;
+            // unaligned problems?!
+            uint32_t freq = 1000000;
+            si5351_set_frequency(freq, SI5351_CLK_DRIVE_STRENGTH_2MA);
+            len = cobsEncode(dataBuffer, 1, resultBuffer);
+            resultBuffer[len++] = 0;
+            streamWrite(gs_usb_stream, resultBuffer, len);
+        }
+        return true;
+    case 0x04:  /* get frequency */        
+        {
+            dataBuffer[0] = 0x04;
+            uint32_t freq = si5351_get_frequency();
+            memcpy(dataBuffer+1, &freq, sizeof(freq));
+            len = cobsEncode(dataBuffer, 1 + sizeof(freq), resultBuffer);
+            resultBuffer[len++] = 0;
+            streamWrite(gs_usb_stream, resultBuffer, len);
+        }
+        return true;
+    case 0x05:  /* set measurement channel */
+        {
+            switch(data[1])
+            {
+            case 0:
+                tlv320aic3204_select(0); // select REFLECT channel
+                break;
+            case 1:
+                tlv320aic3204_select(1); // select TRANSMISSION channel
+                break;
+            default:
+                return false;
+            }
+
+            dataBuffer[0] = 0x05;
+            len = cobsEncode(dataBuffer, 1, resultBuffer);
+            resultBuffer[len++] = 0;
+            streamWrite(gs_usb_stream, resultBuffer, len);
+        }
+        return true;
     }
     
     return false;

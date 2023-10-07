@@ -46,15 +46,6 @@ extern int16_t rx_buffer[];
 
 #define STATE_LEN 32
 #define SAMPLE_LEN 48
-
-/*
-* tlv320aic3204.c
-*/
-
-extern void tlv320aic3204_init(void);
-extern void tlv320aic3204_set_gain(int lgain, int rgain);
-extern void tlv320aic3204_select(int channel);
-
 #define CONFIG_MAGIC 0x434f4e45 /* 'CONF' */
 
 void enter_dfu(void);

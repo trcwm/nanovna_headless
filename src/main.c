@@ -32,6 +32,7 @@
 #include "hal.h"
 #include "nanovna.h"
 #include "si5351.h"
+#include "tlv320aic3204.h"
 #include "usbcfg.h"
 #include "cmdhandler.h"
 

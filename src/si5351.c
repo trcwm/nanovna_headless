@@ -429,7 +429,7 @@ si5351_set_frequency(uint32_t freq, uint8_t drive_strength)
     drive_strength&=SI5351_CLK_DRIVE_STRENGTH_MASK;
 
     // fixme:
-    config.harmonic_freq_threshold = 30000000;
+    config.harmonic_freq_threshold = 300000000;
 
     if (freq >= config.harmonic_freq_threshold * 7U)
     {
