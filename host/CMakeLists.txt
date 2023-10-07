@@ -10,3 +10,8 @@ add_executable(hostapp
 add_executable(sincos_test
     sincos.cpp
 )
+
+add_executable(cobs_test
+    cobstest.cpp
+    cobs.cpp
+)

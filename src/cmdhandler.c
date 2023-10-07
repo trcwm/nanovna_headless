@@ -149,7 +149,12 @@ bool executeCmd(const uint8_t *data, uint8_t datasize)
         {
             dataBuffer[0] = 0x03;
             // unaligned problems?!
-            uint32_t freq = 1000000;
+            uint32_t freq; //= *(const uint32_t*)(data+1);
+            uint8_t* freqPtr = (uint8_t*)&freq;
+            freqPtr[0] = data[1];
+            freqPtr[1] = data[2];
+            freqPtr[2] = data[3];
+            freqPtr[3] = data[4];
             si5351_set_frequency(freq, SI5351_CLK_DRIVE_STRENGTH_2MA);
             len = cobsEncode(dataBuffer, 1, resultBuffer);
             resultBuffer[len++] = 0;
